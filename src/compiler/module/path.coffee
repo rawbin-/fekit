@@ -1,6 +1,7 @@
 syspath = require 'path'
 fs = require 'fs'
 utils = require '../../util'
+cjson = require 'cjson'
 
 ### ---------------------------
     模块路径
@@ -135,10 +136,9 @@ ModulePath.getCompile = (cwd, folder) ->
     projectFolder = syspath.join(cwd, folder)
     if fs.existsSync(fekitconfig)
         try
-            config = utils.file.io.readJSON(fekitconfig)
-        catch e
-            return
-
+            config = cjson.load(fekitconfig)
+        catch err
+            utils.logger.error("解析 #{fekitconfig} 时出现错误, 请检查该文件, 该文件必须是标准JSON格式" )
         build = config.build
         if build
             for extName, plugin of build
@@ -148,10 +148,6 @@ ModulePath.getCompile = (cwd, folder) ->
 
                 buildName = syspath.join(projectFolder, extName)
                 ModulePath.addExtensionPlugin(buildName, require(buildPath))
-
-                # 如果是没有内置的编译扩展，默认将第一个匹配的自定义编译作为默认编译
-                if !ModulePath.getContentType(extName)
-                    ModulePath.addExtensionPlugin(extName, require(buildPath))
 
 # 后缀列表
 ModulePath.EXTLIST = []
